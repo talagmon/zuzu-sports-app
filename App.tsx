@@ -1,9 +1,41 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 
 export default function App() {
-  const handleButtonPress = (message: string) => {
-    alert(message);
+  const handleDownloadApp = () => {
+    // Detect platform and redirect to appropriate store
+    const isIOS = Platform.OS === 'ios' || /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = Platform.OS === 'android' || /Android/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      Linking.openURL('https://apps.apple.com/il/app/zuzu-%D7%A1%D7%A4%D7%95%D7%A8%D7%98-%D7%9C%D7%99%D7%9C%D7%93%D7%99%D7%9D/id6741363934?l=he');
+    } else if (isAndroid) {
+      Linking.openURL('https://play.google.com/store/apps/details?id=com.zuzu.sports');
+    } else {
+      // For web browsers, show both options
+      const userChoice = confirm('בחר את החנות המתאימה:\nOK = App Store (iOS)\nCancel = Google Play (Android)');
+      if (userChoice) {
+        Linking.openURL('https://apps.apple.com/il/app/zuzu-%D7%A1%D7%A4%D7%95%D7%A8%D7%98-%D7%9C%D7%99%D7%9C%D7%93%D7%99%D7%9D/id6741363934?l=he');
+      } else {
+        Linking.openURL('https://play.google.com/store/apps/details?id=com.zuzu.sports');
+      }
+    }
+  };
+
+  const handleCategoryPress = (category: string) => {
+    // Direct to app download for specific category
+    alert(`הורד את האפליקציה כדי לצפות ב${category}!`);
+    setTimeout(() => {
+      handleDownloadApp();
+    }, 1000);
+  };
+
+  const handleContactEmail = () => {
+    Linking.openURL('mailto:hello@zuzu-apps.com');
+  };
+
+  const handleContactWhatsApp = () => {
+    Linking.openURL('https://wa.me/972546880474');
   };
 
   return (
@@ -15,9 +47,9 @@ export default function App() {
           <Text style={styles.subtitle}>אפליקציית כושר מהנה לילדים בגילאי 6-12</Text>
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => handleButtonPress('זוזו ספורט - בקרוב באפליקציה!')}
+            onPress={handleDownloadApp}
           >
-            <Text style={styles.buttonText}>בואו נתחיל להתאמן!</Text>
+            <Text style={styles.buttonText}>הורד את האפליקציה עכשיו!</Text>
           </TouchableOpacity>
         </View>
 
@@ -83,7 +115,7 @@ export default function App() {
           
           <TouchableOpacity 
             style={[styles.categoryCard, { backgroundColor: '#ff6b35' }]}
-            onPress={() => handleButtonPress('צפה ב-37 סרטוני משפחה')}
+            onPress={() => handleCategoryPress('סרטוני משפחה')}
           >
             <Text style={styles.categoryIcon}>👨‍👩‍👧‍👦</Text>
             <View style={styles.categoryContent}>
@@ -94,7 +126,7 @@ export default function App() {
 
           <TouchableOpacity 
             style={[styles.categoryCard, { backgroundColor: '#e91e63' }]}
-            onPress={() => handleButtonPress('צפה ב-36 סרטוני ריקוד')}
+            onPress={() => handleCategoryPress('סרטוני ריקוד')}
           >
             <Text style={styles.categoryIcon}>💃</Text>
             <View style={styles.categoryContent}>
@@ -105,7 +137,7 @@ export default function App() {
 
           <TouchableOpacity 
             style={[styles.categoryCard, { backgroundColor: '#9c27b0' }]}
-            onPress={() => handleButtonPress('צפה ב-41 סרטוני כוח')}
+            onPress={() => handleCategoryPress('סרטוני כוח')}
           >
             <Text style={styles.categoryIcon}>💪</Text>
             <View style={styles.categoryContent}>
@@ -116,7 +148,7 @@ export default function App() {
 
           <TouchableOpacity 
             style={[styles.categoryCard, { backgroundColor: '#4caf50' }]}
-            onPress={() => handleButtonPress('צפה ב-25 סרטוני יוגה')}
+            onPress={() => handleCategoryPress('סרטוני יוגה')}
           >
             <Text style={styles.categoryIcon}>🧘</Text>
             <View style={styles.categoryContent}>
@@ -132,10 +164,33 @@ export default function App() {
           <Text style={styles.ctaDescription}>הורידו את האפליקציה עכשיו והתחילו למסע כושר מהנה!</Text>
           <TouchableOpacity 
             style={styles.ctaButton}
-            onPress={() => handleButtonPress('הורדת האפליקציה מחנות האפליקציות - בקרוב!')}
+            onPress={handleDownloadApp}
           >
-            <Text style={styles.ctaButtonText}>📱 חנות האפליקציות</Text>
+            <Text style={styles.ctaButtonText}>📱 הורד את האפליקציה</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Contact Section */}
+        <View style={styles.contactSection}>
+          <Text style={styles.contactTitle}>צור קשר</Text>
+          
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={handleContactEmail}
+          >
+            <Text style={styles.contactIcon}>📧</Text>
+            <Text style={styles.contactText}>hello@zuzu-apps.com</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={handleContactWhatsApp}
+          >
+            <Text style={styles.contactIcon}>📱</Text>
+            <Text style={styles.contactText}>054-6880474</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.contactNote}>אל תהססו לפנות אלינו בכל שאלה!</Text>
         </View>
 
         {/* Footer */}
@@ -322,6 +377,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  contactSection: {
+    backgroundColor: 'white',
+    padding: 25,
+    borderRadius: 15,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  contactTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginBottom: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+  },
+  contactIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  contactText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  contactNote: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   footer: {
     alignItems: 'center',
