@@ -1,288 +1,222 @@
-# 🎮 ZuzSports - Kids Fitness App
+# 🎮 ZuzSports - Fun Fitness App for Kids
 
-A modern React Native application for kids' fitness and workouts, featuring Hebrew/English localization and rich media content from Cloudinary.
+A modern React Native application designed for kids aged 6-12, featuring Hebrew/English localization and engaging workout content from Cloudinary.
 
-## 🚀 Technology Stack (As Requested)
+## 🌟 Features
 
-### **UI Kit & Styling**
-- **Tamagui** - High-performance, themeable components with flawless RTL support
-- Custom ZuzSports theme with vibrant colors for kids
+- 🇮🇱 **Hebrew/English Support** with automatic RTL layout
+- 🎥 **300+ Workout Videos** integrated from Cloudinary
+- 🎨 **Modern UI** with Tamagui components
+- ✨ **Smooth Animations** using React Native Reanimated
+- 🎯 **Custom Graphics** with React Native Skia
+- 📱 **Mobile-First Design** optimized for kids
+- 🔐 **Secure Configuration** with environment variables
 
-### **Animations**
-- **React Native Reanimated** - Smooth UI animations and transitions
-- **React Native Skia** - Custom 2D graphics and particle effects
+## 🛠️ Technology Stack
 
-### **State Management**
-- **Zustand** - Simple, fast global state management
-- Devtools integration for debugging
+### **Core Technologies (As Requested)**
+- **UI Kit & Styling**: [Tamagui](https://tamagui.dev/) - High-performance, themeable components with flawless RTL support
+- **Animations**: [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) - Smooth UI animations and transitions
+- **Custom Graphics**: [React Native Skia](https://shopify.github.io/react-native-skia/) - Custom 2D graphics and particle effects
+- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/) - Simple, fast global state management
+- **Data & Caching**: [TanStack Query](https://tanstack.com/query/latest) - Managing API data and client-side caching
+- **Localization**: [i18next](https://www.i18next.com/) - Managing English/Hebrew text with RTL support
 
-### **Data & Caching**
-- **TanStack Query** - Managing API data and client-side caching
-- Cloudinary API integration for video/image content
+### **Additional Technologies**
+- **Framework**: React Native with Expo
+- **Media**: Cloudinary for video/image management
+- **Deployment**: Fly.io for web deployment
+- **Version Control**: Git with GitHub
 
-### **Localization**
-- **i18next** - Managing English/Hebrew text with RTL support
-- Automatic device language detection
-
-## 📱 Features
-
-### **Core Functionality**
-- ✅ **Hebrew/English Localization** with automatic RTL layout
-- ✅ **Cloudinary Video Integration** with 300+ workout videos
-- ✅ **Workout Categories** (Family, Dance, Power, Yoga, Static)
-- ✅ **Animated Statistics** with real-time counters
-- ✅ **Video Player** with custom controls
-- ✅ **Responsive Design** for all screen sizes
-
-### **Advanced Features**
-- ✅ **Smooth Animations** using Reanimated
-- ✅ **Custom Graphics** with Skia particles
-- ✅ **Theme Support** (Light/Dark modes)
-- ✅ **Offline Caching** with TanStack Query
-- ✅ **Performance Optimized** with Tamagui
-
-## 🛠️ Installation & Setup
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- npm 8+
+- Node.js 18+ 
+- npm or yarn
 - Expo CLI
-- React Native development environment
+- Git
 
-### Install Dependencies
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/talagmon/zuzu-sports-app.git
+   cd zuzu-sports-app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Cloudinary credentials
+   ```
+
+4. **Start development server**
+   ```bash
+   npm start
+   ```
+
+## 🔐 Environment Setup
+
+### Required Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Cloudinary Configuration
+EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# App Configuration
+EXPO_PUBLIC_APP_ENV=development
+EXPO_PUBLIC_API_BASE_URL=https://api.zuzusports.com
+```
+
+### Security Notes
+- ⚠️ **Never commit `.env` files to version control**
+- 🔒 **Use different API keys for development/production**
+- 📊 **Monitor API usage regularly**
+- 🔄 **Rotate API keys monthly**
+
+See [SECURITY.md](./SECURITY.md) for detailed security guidelines.
+
+## 📱 Available Scripts
+
 ```bash
-npm install
+# Development
+npm start              # Start Expo development server
+npm run web            # Run in web browser
+npm run android        # Run on Android device/emulator
+npm run ios            # Run on iOS device/simulator
+
+# Building
+npm run build:web      # Build for web deployment
+npm run build:android  # Build Android APK
+npm run build:ios      # Build iOS app
+
+# Deployment
+npm run deploy         # Deploy to Fly.io
 ```
 
-### Configure Environment
-1. Update Cloudinary credentials in `src/services/cloudinaryApi.ts`
-2. Customize theme colors in `tamagui.config.ts`
-3. Add/modify translations in `src/localization/locales/`
+## 🌍 Localization
 
-## 🏃‍♂️ Running the App
+The app supports Hebrew and English with automatic RTL layout:
 
-### Development
-```bash
-# Start Expo development server
-npm start
+- **Hebrew**: Primary language for Israeli kids
+- **English**: Secondary language support
+- **RTL Support**: Automatic right-to-left layout for Hebrew
+- **Dynamic Switching**: Users can switch languages in-app
 
-# Run on specific platforms
-npm run android    # Android
-npm run ios        # iOS (requires macOS)
-npm run web        # Web browser
-```
+### Adding New Languages
 
-### Production Build
-```bash
-# Build for web deployment
-npm run build:web
+1. Create new locale file in `src/localization/locales/`
+2. Add language to `i18n.ts` configuration
+3. Update RTL language list if needed
 
-# Build for mobile app stores
-npm run build:android
-npm run build:ios
-```
+## 🎥 Cloudinary Integration
 
-## 🚀 Deployment to Fly.io
+The app integrates with Cloudinary for media management:
 
-### Prerequisites
-- Install [Fly CLI](https://fly.io/docs/getting-started/installing-flyctl/)
-- Create Fly.io account
+- **Video Categories**: Family, Dance, Power, Yoga, Static
+- **Optimized Delivery**: Automatic format and quality optimization
+- **Thumbnail Generation**: Auto-generated video thumbnails
+- **Responsive Images**: Multiple sizes for different devices
 
-### Deploy Steps
-```bash
-# Login to Fly.io
-fly auth login
+### Video Categories
+- 👨‍👩‍👧‍👦 **Family**: Fun family exercises
+- 💃 **Dance**: Energetic and fun dances  
+- 💪 **Power**: Muscle strengthening exercises
+- 🧘 **Yoga**: Calming yoga for kids
+- 🏃 **Static**: Equipment-free exercises
 
-# Deploy the app
-npm run deploy
-```
-
-### Configuration
-- **fly.toml** - Fly.io app configuration
-- **Dockerfile** - Multi-stage build with Nginx
-- **nginx.conf** - Web server configuration
-
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
-zuzu-rn-app/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── HeroSection.tsx  # Hero with Skia graphics
-│   │   ├── VideoPlayer.tsx  # Custom video player
-│   │   ├── WorkoutCategoryCard.tsx
-│   │   └── StatsSection.tsx # Animated statistics
-│   ├── screens/
-│   │   └── HomeScreen.tsx   # Main app screen
-│   ├── store/
-│   │   └── appStore.ts      # Zustand state management
-│   ├── services/
-│   │   └── cloudinaryApi.ts # TanStack Query API
-│   └── localization/
-│       ├── i18n.ts          # i18next configuration
-│       └── locales/         # Translation files
-│           ├── en.json      # English translations
-│           └── he.json      # Hebrew translations
-├── App.tsx                  # Main app component
-├── tamagui.config.ts        # Tamagui theme configuration
-├── babel.config.js          # Babel with Tamagui plugin
-├── fly.toml                 # Fly.io configuration
-├── Dockerfile               # Docker build configuration
-└── nginx.conf               # Nginx web server config
+src/
+├── components/          # Reusable UI components
+│   ├── HeroSection.tsx
+│   ├── StatsSection.tsx
+│   ├── VideoPlayer.tsx
+│   └── WorkoutCategoryCard.tsx
+├── config/             # Configuration files
+│   └── environment.ts  # Secure environment management
+├── localization/       # Internationalization
+│   ├── i18n.ts
+│   └── locales/
+│       ├── en.json
+│       └── he.json
+├── screens/            # App screens
+│   └── HomeScreen.tsx
+├── services/           # API services
+│   └── cloudinaryApi.ts
+└── store/              # State management
+    └── appStore.ts
 ```
 
-## 🎨 Customization
+## 🚀 Deployment
 
-### Theme Colors
-Edit `tamagui.config.ts` to customize the color scheme:
-```typescript
-themes: {
-  zuzuLight: {
-    primary: '#ff6b6b',      // Main brand color
-    secondary: '#4ecdc4',    // Secondary color
-    accent: '#feca57',       // Accent color
-    // ... more colors
-  }
-}
-```
+### Web Deployment (Fly.io)
 
-### Translations
-Add new languages by creating files in `src/localization/locales/`:
-```json
-{
-  "app": {
-    "name": "Your App Name",
-    "tagline": "Your Tagline"
-  },
-  // ... more translations
-}
-```
+1. **Install Fly CLI**
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   ```
 
-### Animations
-Customize animations in components using Reanimated:
-```typescript
-const fadeAnim = useSharedValue(0);
-fadeAnim.value = withSpring(1, { damping: 15 });
-```
+2. **Login to Fly.io**
+   ```bash
+   fly auth login
+   ```
 
-## 🔧 API Integration
+3. **Deploy**
+   ```bash
+   npm run deploy
+   ```
 
-### Cloudinary Setup
-1. Update credentials in `src/services/cloudinaryApi.ts`
-2. Configure video categorization logic
-3. Customize video processing functions
+### Mobile App Stores
 
-### Adding New APIs
-1. Create service files in `src/services/`
-2. Use TanStack Query hooks for data fetching
-3. Update Zustand store for state management
+1. **Build for Android**
+   ```bash
+   npm run build:android
+   ```
 
-## 📊 Performance
+2. **Build for iOS**
+   ```bash
+   npm run build:ios
+   ```
 
-### Optimizations Included
-- **Lazy Loading** - Components load on demand
-- **Image Optimization** - Cloudinary automatic optimization
-- **Caching** - TanStack Query with 5-minute stale time
-- **Bundle Splitting** - Automatic code splitting
-- **Gzip Compression** - Nginx compression enabled
-
-### Monitoring
-- React Native Performance Monitor
-- Flipper integration for debugging
-- Zustand DevTools for state inspection
-
-## 🌐 Internationalization (i18n)
-
-### Supported Languages
-- **Hebrew (he)** - Primary language with RTL support
-- **English (en)** - Secondary language
-
-### RTL Support
-- Automatic layout direction based on language
-- Tamagui built-in RTL support
-- Custom RTL-aware components
-
-### Adding Languages
-1. Create translation file in `src/localization/locales/`
-2. Update `i18n.ts` configuration
-3. Add language to supported languages array
-
-## 🔒 Security
-
-### Implemented Measures
-- **API Key Protection** - Server-side API calls
-- **Content Security Policy** - Nginx headers
-- **XSS Protection** - Security headers enabled
-- **HTTPS Enforcement** - Fly.io automatic HTTPS
-
-## 📱 Mobile App Deployment
-
-### iOS App Store
-1. Build with `npm run build:ios`
-2. Use Xcode for final build and submission
-3. Follow Apple App Store guidelines
-
-### Google Play Store
-1. Build with `npm run build:android`
-2. Generate signed APK/AAB
-3. Upload to Google Play Console
+3. **Submit to stores** using Expo Application Services (EAS)
 
 ## 🤝 Contributing
 
-### Development Workflow
 1. Fork the repository
-2. Create feature branch
-3. Follow coding standards
-4. Add tests for new features
-5. Submit pull request
-
-### Code Standards
-- TypeScript for type safety
-- ESLint for code quality
-- Prettier for formatting
-- Conventional commits
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-### Documentation
-- [Tamagui Docs](https://tamagui.dev/)
-- [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
-- [TanStack Query](https://tanstack.com/query/)
-- [i18next](https://www.i18next.com/)
+- 📧 **Email**: support@zuzusports.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/talagmon/zuzu-sports-app/issues)
+- 📖 **Documentation**: [Wiki](https://github.com/talagmon/zuzu-sports-app/wiki)
 
-### Issues
-- Report bugs via GitHub Issues
-- Feature requests welcome
-- Community support available
+## 🙏 Acknowledgments
+
+- **Tamagui Team** for the amazing UI framework
+- **Expo Team** for the excellent development platform
+- **Cloudinary** for powerful media management
+- **React Native Community** for continuous innovation
 
 ---
 
-## 🎯 Project Goals Achieved
-
-✅ **Technology Stack Compliance**
-- Tamagui for UI components and RTL support
-- React Native Reanimated for animations
-- React Native Skia for custom graphics
-- Zustand for state management
-- TanStack Query for data management
-- i18next for Hebrew/English localization
-
-✅ **Deployment Ready**
-- Fly.io configuration complete
-- Docker multi-stage build
-- Nginx production server
-- Performance optimized
-
-✅ **Feature Complete**
-- Cloudinary video integration
-- Hebrew/English localization
-- Smooth animations
-- Responsive design
-- Production ready
-
-**🚀 Ready for production deployment to Fly.io!**
+**Made with ❤️ for kids and families by the ZuzSports team**
 
