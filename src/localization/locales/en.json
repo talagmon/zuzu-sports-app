@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "ZuzSports",
+    "subtitle": "Fun fitness app for kids",
+    "description": "A fun and safe app that encourages kids to be active and healthy",
+    "tagline": "Let's start working out!"
+  },
+  "navigation": {
+    "home": "Home",
+    "activities": "Activities", 
+    "progress": "Progress",
+    "profile": "Profile"
+  },
+  "features": {
+    "title": "Why ZuzSports?",
+    "games": {
+      "title": "Fun Fitness Games",
+      "description": "Interactive activities that turn sports into fun games"
+    },
+    "family": {
+      "title": "Family Activity",
+      "description": "Exercises the whole family can do together"
+    },
+    "variety": {
+      "title": "Variety of Activities",
+      "description": "Yoga, dance, strength, and many more fun options"
+    },
+    "safety": {
+      "title": "Safe for Kids",
+      "description": "Age-appropriate exercises with clear safety guidelines"
+    }
+  },
+  "stats": {
+    "title": "Our Stats",
+    "videos": "Workout Videos",
+    "kids": "Active Kids",
+    "categories": "Sport Categories", 
+    "families": "Happy Families"
+  },
+  "categories": {
+    "title": "Workout Categories",
+    "family": {
+      "name": "Family",
+      "description": "Fun family exercises"
+    },
+    "dance": {
+      "name": "Dance",
+      "description": "Energetic and fun dances"
+    },
+    "power": {
+      "name": "Power",
+      "description": "Muscle strengthening exercises"
+    },
+    "yoga": {
+      "name": "Yoga",
+      "description": "Calming yoga for kids"
+    },
+    "static": {
+      "name": "Static",
+      "description": "Equipment-free exercises"
+    }
+  },
+  "cta": {
+    "title": "Ready to Start?",
+    "description": "Download the app now and start your fun fitness journey!",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Try Again",
+    "videos": "Videos",
+    "video": "Video",
+    "play": "Play",
+    "pause": "Pause",
+    "close": "Close"
+  },
+  "footer": {
+    "copyright": "© 2024 ZuzSports - All rights reserved"
+  }
+}
+
