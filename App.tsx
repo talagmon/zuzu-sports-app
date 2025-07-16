@@ -3,8 +3,6 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nextProvider } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TamaguiProvider } from '@tamagui/core';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Import configurations
 import config from './tamagui.config';
@@ -37,18 +35,14 @@ export default function App() {
   }, [currentLanguage]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <TamaguiProvider config={config} defaultTheme={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
-            <I18nextProvider i18n={i18n}>
-              <StatusBar style={theme === 'light' ? 'dark' : 'light'} />
-              <HomeScreen />
-            </I18nextProvider>
-          </TamaguiProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <TamaguiProvider config={config} defaultTheme={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
+        <I18nextProvider i18n={i18n}>
+          <StatusBar style={theme === 'light' ? 'dark' : 'light'} />
+          <HomeScreen />
+        </I18nextProvider>
+      </TamaguiProvider>
+    </QueryClientProvider>
   );
 }
 

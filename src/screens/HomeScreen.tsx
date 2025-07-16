@@ -8,8 +8,7 @@ import {
   Button, 
   Spinner,
   Theme,
-  View,
-  SafeAreaView
+  View
 } from '@tamagui/core';
 import { LinearGradient } from '@tamagui/linear-gradient';
 import Animated, { 
@@ -21,11 +20,6 @@ import Animated, {
   withTiming,
   interpolate
 } from 'react-native-reanimated';
-
-// Import components
-import HeroSection from '../components/HeroSection';
-import StatsSection from '../components/StatsSection';
-import WorkoutCategoryCard from '../components/WorkoutCategoryCard';
 
 // Import hooks and store
 import { useAppStore } from '../store/appStore';
@@ -183,7 +177,7 @@ const HomeScreen: React.FC = () => {
 
   if (error) {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <Theme name={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
           <YStack flex={1} justifyContent="center" alignItems="center" padding="$4">
             <Text fontSize="$6" color="$error" textAlign="center" marginBottom="$4">
@@ -194,12 +188,12 @@ const HomeScreen: React.FC = () => {
             </Button>
           </YStack>
         </Theme>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, direction: getTextDirection(currentLanguage) }}>
+    <View style={{ flex: 1, direction: getTextDirection(currentLanguage) }}>
       <Theme name={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
         <ScrollView
           style={{ flex: 1 }}
@@ -209,7 +203,94 @@ const HomeScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* Hero Section */}
-          <HeroSection />
+          <View style={{ position: 'relative', height: 400 }}>
+            {/* Background Gradient */}
+            <LinearGradient
+              colors={[
+                theme === 'light' ? '#ff6b35' : '#ff8a65',
+                theme === 'light' ? '#e91e63' : '#f06292',
+                theme === 'light' ? '#9c27b0' : '#ba68c8'
+              ]}
+              start={[0, 0]}
+              end={[1, 1]}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+
+            {/* Content */}
+            <AnimatedYStack
+              entering={FadeInUp.delay(100)}
+              flex={1}
+              justifyContent="center"
+              alignItems="center"
+              padding="$6"
+              space="$4"
+              style={{ zIndex: 10 }}
+            >
+              {/* Main Title */}
+              <Animated.View style={floatingStyle}>
+                <Text
+                  fontSize="$10"
+                  fontWeight="900"
+                  color="white"
+                  textAlign="center"
+                  fontFamily="$hebrew"
+                >
+                  {t('app.title')}
+                </Text>
+              </Animated.View>
+
+              {/* Subtitle */}
+              <Text
+                fontSize="$6"
+                color="white"
+                textAlign="center"
+                opacity={0.95}
+                fontFamily="$hebrew"
+              >
+                {t('app.subtitle')}
+              </Text>
+
+              {/* Description */}
+              <Text
+                fontSize="$4"
+                color="white"
+                textAlign="center"
+                opacity={0.9}
+                maxWidth={300}
+                lineHeight="$2"
+                fontFamily="$hebrew"
+              >
+                {t('app.description')}
+              </Text>
+
+              {/* Call to Action Button */}
+              <Animated.View style={pulseStyle}>
+                <Button
+                  size="$6"
+                  backgroundColor="white"
+                  color="$primary"
+                  borderRadius="$6"
+                  fontWeight="700"
+                  fontSize="$5"
+                  pressStyle={{ 
+                    scale: 0.95,
+                    backgroundColor: '$backgroundHover'
+                  }}
+                  onPress={() => {
+                    alert('זוזו ספורט - בקרוב באפליקציה!');
+                  }}
+                >
+                  {t('app.tagline')}
+                </Button>
+              </Animated.View>
+            </AnimatedYStack>
+          </View>
 
           {/* Features Section */}
           <AnimatedYStack
@@ -269,7 +350,78 @@ const HomeScreen: React.FC = () => {
           </AnimatedYStack>
 
           {/* Stats Section */}
-          <StatsSection />
+          <AnimatedYStack
+            entering={FadeInUp.delay(400)}
+            padding="$4"
+            space="$4"
+            backgroundColor={theme === 'light' ? '$backgroundHover' : '$background'}
+          >
+            <Text 
+              fontSize="$8" 
+              fontWeight="bold" 
+              textAlign="center"
+              color="$color"
+              marginBottom="$2"
+            >
+              {t('stats.title')}
+            </Text>
+
+            <XStack 
+              flexWrap="wrap" 
+              justifyContent="center" 
+              space="$3"
+              gap="$3"
+            >
+              {[
+                { value: appStats?.totalVideos || 300, labelKey: 'stats.videos', icon: '🎥', color: '#ff6b35' },
+                { value: appStats?.activeKids || 50000, labelKey: 'stats.kids', icon: '👶', color: '#e91e63' },
+                { value: appStats?.categories || 5, labelKey: 'stats.categories', icon: '🏃', color: '#9c27b0' },
+                { value: 10000, labelKey: 'stats.families', icon: '👨‍👩‍👧‍👦', color: '#4caf50' },
+              ].map((stat, index) => (
+                <LinearGradient
+                  key={stat.labelKey}
+                  colors={[stat.color, `${stat.color}CC`, `${stat.color}99`]}
+                  start={[0, 0]}
+                  end={[1, 1]}
+                  borderRadius="$4"
+                  padding="$4"
+                  alignItems="center"
+                  space="$2"
+                  minWidth={120}
+                >
+                  <View
+                    backgroundColor="rgba(255,255,255,0.2)"
+                    borderRadius="$6"
+                    padding="$2"
+                    alignItems="center"
+                    justifyContent="center"
+                    width={50}
+                    height={50}
+                  >
+                    <Text fontSize="$6">{stat.icon}</Text>
+                  </View>
+                  <Text
+                    fontSize="$8"
+                    fontWeight="900"
+                    color="white"
+                    textAlign="center"
+                  >
+                    {stat.value >= 1000 ? `${Math.floor(stat.value / 1000)}K+` : `${stat.value}+`}
+                  </Text>
+                  <Text
+                    fontSize="$3"
+                    color="white"
+                    textAlign="center"
+                    opacity={0.9}
+                    fontWeight="600"
+                    numberOfLines={2}
+                  >
+                    {t(stat.labelKey)}
+                  </Text>
+                </LinearGradient>
+              ))}
+            </XStack>
+          </AnimatedYStack>
 
           {/* Categories Section */}
           <AnimatedYStack
@@ -295,12 +447,95 @@ const HomeScreen: React.FC = () => {
               </YStack>
             ) : (
               <YStack space="$3">
-                {categories?.map((category, index) => (
-                  <WorkoutCategoryCard
+                {[
+                  { id: 'family', nameKey: 'categories.family.name', descriptionKey: 'categories.family.description', icon: '👨‍👩‍👧‍👦', color: '#ff6b35', videos: 37 },
+                  { id: 'dance', nameKey: 'categories.dance.name', descriptionKey: 'categories.dance.description', icon: '💃', color: '#e91e63', videos: 36 },
+                  { id: 'power', nameKey: 'categories.power.name', descriptionKey: 'categories.power.description', icon: '💪', color: '#9c27b0', videos: 41 },
+                  { id: 'yoga', nameKey: 'categories.yoga.name', descriptionKey: 'categories.yoga.description', icon: '🧘', color: '#4caf50', videos: 25 },
+                ].map((category, index) => (
+                  <LinearGradient
                     key={category.id}
-                    category={category}
-                    index={index}
-                  />
+                    colors={[category.color, `${category.color}CC`, `${category.color}99`]}
+                    start={[0, 0]}
+                    end={[1, 1]}
+                    borderRadius="$4"
+                    padding="$4"
+                    marginHorizontal="$2"
+                  >
+                    <XStack 
+                      alignItems="center" 
+                      space="$3"
+                      flexDirection={isRTL ? 'row-reverse' : 'row'}
+                    >
+                      <View
+                        backgroundColor="rgba(255,255,255,0.2)"
+                        borderRadius="$6"
+                        padding="$3"
+                        alignItems="center"
+                        justifyContent="center"
+                        width={60}
+                        height={60}
+                      >
+                        <Text fontSize="$7">{category.icon}</Text>
+                      </View>
+
+                      <YStack flex={1} space="$2">
+                        <Text
+                          fontSize="$6"
+                          fontWeight="bold"
+                          color="white"
+                          textAlign={isRTL ? 'right' : 'left'}
+                        >
+                          {t(category.nameKey)}
+                        </Text>
+                        <Text
+                          fontSize="$3"
+                          color="white"
+                          opacity={0.9}
+                          textAlign={isRTL ? 'right' : 'left'}
+                        >
+                          {t(category.descriptionKey)}
+                        </Text>
+                        <XStack 
+                          alignItems="center" 
+                          space="$2"
+                          flexDirection={isRTL ? 'row-reverse' : 'row'}
+                        >
+                          <Text fontSize="$2" color="white" opacity={0.8}>
+                            {category.videos} {t('common.videos')}
+                          </Text>
+                          <View
+                            backgroundColor="rgba(255,255,255,0.3)"
+                            borderRadius="$2"
+                            paddingHorizontal="$2"
+                            paddingVertical="$1"
+                          >
+                            <Text fontSize="$1" color="white" fontWeight="600">
+                              {category.id.toUpperCase()}
+                            </Text>
+                          </View>
+                        </XStack>
+                      </YStack>
+
+                      <Button
+                        size="$3"
+                        backgroundColor="rgba(255,255,255,0.2)"
+                        color="white"
+                        borderRadius="$3"
+                        borderWidth={1}
+                        borderColor="rgba(255,255,255,0.3)"
+                        pressStyle={{
+                          backgroundColor: 'rgba(255,255,255,0.3)',
+                          scale: 0.95,
+                        }}
+                        onPress={() => {
+                          alert(`צפה ב-${category.videos} סרטוני ${t(category.nameKey)}`);
+                        }}
+                      >
+                        צפה
+                      </Button>
+                    </XStack>
+                  </LinearGradient>
                 ))}
               </YStack>
             )}
@@ -346,9 +581,11 @@ const HomeScreen: React.FC = () => {
                     borderRadius="$4"
                     fontWeight="600"
                     pressStyle={{ scale: 0.95 }}
-                    icon="📱"
+                    onPress={() => {
+                      alert('הורדת האפליקציה מחנות האפליקציות - בקרוב!');
+                    }}
                   >
-                    {t('cta.appStore')}
+                    📱 {t('cta.appStore')}
                   </Button>
                   <Button
                     size="$5"
@@ -357,9 +594,11 @@ const HomeScreen: React.FC = () => {
                     borderRadius="$4"
                     fontWeight="600"
                     pressStyle={{ scale: 0.95 }}
-                    icon="📱"
+                    onPress={() => {
+                      alert('הורדת האפליקציה מגוגל פליי - בקרוב!');
+                    }}
                   >
-                    {t('cta.googlePlay')}
+                    📱 {t('cta.googlePlay')}
                   </Button>
                 </XStack>
               </YStack>
@@ -378,7 +617,7 @@ const HomeScreen: React.FC = () => {
           </YStack>
         </ScrollView>
       </Theme>
-    </SafeAreaView>
+    </View>
   );
 };
 
