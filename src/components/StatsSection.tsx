@@ -1,209 +1,325 @@
 import React, { useEffect } from 'react';
-import { YStack, XStack, Text, Card, useTheme } from '@tamagui/core';
+import { useTranslation } from 'react-i18next';
+import { 
+  YStack, 
+  XStack, 
+  Text,
+  View
+} from '@tamagui/core';
+import { LinearGradient } from '@tamagui/linear-gradient';
 import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
   withDelay,
   interpolate,
-  runOnJS
+  withRepeat,
+  Easing
 } from 'react-native-reanimated';
-import { useTranslation } from 'react-i18next';
 
-// Import store
+// Import hooks and store
 import { useAppStore } from '../store/appStore';
+import { useAppStats } from '../services/cloudinaryApi';
+
+// Animated components
+const AnimatedYStack = Animated.createAnimatedComponent(YStack);
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 interface StatItemProps {
-  icon: string;
   value: number;
   label: string;
-  delay: number;
+  icon: string;
+  index: number;
+  color: string;
 }
 
-const StatItem: React.FC<StatItemProps> = ({ icon, value, label, delay }) => {
-  const theme = useTheme();
+const StatItem: React.FC<StatItemProps> = ({ value, label, icon, index, color }) => {
   const { isRTL } = useAppStore();
   
   // Animation values
-  const countAnim = useSharedValue(0);
-  const scaleAnim = useSharedValue(0.8);
-  const fadeAnim = useSharedValue(0);
-  
-  // Animated counter value
-  const [displayValue, setDisplayValue] = React.useState(0);
+  const countValue = useSharedValue(0);
+  const scaleValue = useSharedValue(0);
+  const glowValue = useSharedValue(0);
 
   useEffect(() => {
-    // Entrance animations
-    scaleAnim.value = withDelay(delay, withSpring(1, { damping: 15, stiffness: 100 }));
-    fadeAnim.value = withDelay(delay, withSpring(1, { damping: 15, stiffness: 100 }));
-    
-    // Counter animation
-    countAnim.value = withDelay(delay + 200, withSpring(value, { 
-      damping: 20, 
-      stiffness: 80 
-    }, () => {
-      runOnJS(setDisplayValue)(value);
-    }));
-  }, [delay, value]);
+    // Animate count up
+    countValue.value = withDelay(
+      index * 200,
+      withTiming(value, { 
+        duration: 2000,
+        easing: Easing.out(Easing.exp)
+      })
+    );
 
-  // Update display value during animation
-  useEffect(() => {
-    const updateValue = () => {
-      setDisplayValue(Math.round(countAnim.value));
-    };
-    
-    const interval = setInterval(updateValue, 50);
-    return () => clearInterval(interval);
-  }, []);
+    // Animate scale in
+    scaleValue.value = withDelay(
+      index * 100,
+      withTiming(1, { 
+        duration: 800,
+        easing: Easing.back(1.2)
+      })
+    );
 
-  const animatedStyle = useAnimatedStyle(() => {
+    // Animate glow effect
+    glowValue.value = withDelay(
+      index * 150,
+      withRepeat(
+        withTiming(1, { duration: 2000 }),
+        -1,
+        true
+      )
+    );
+  }, [value, index]);
+
+  // Animated styles
+  const countStyle = useAnimatedStyle(() => {
     return {
-      opacity: fadeAnim.value,
       transform: [
-        { scale: scaleAnim.value }
-      ],
+        { scale: scaleValue.value }
+      ]
     };
   });
 
+  const glowStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(glowValue.value, [0, 1], [0.3, 0.8]);
+    return {
+      opacity,
+    };
+  });
+
+  const animatedCount = useAnimatedStyle(() => {
+    const displayValue = Math.floor(countValue.value);
+    return {
+      // We'll use this in the component to display the animated number
+    };
+  });
+
+  // Format number for display
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return `${Math.floor(num / 1000)}K+`;
+    }
+    return `${Math.floor(num)}+`;
+  };
+
   return (
-    <Animated.View style={animatedStyle}>
-      <Card
-        backgroundColor={theme.backgroundHover}
-        borderRadius=\"$4\"
-        padding=\"$4\"
-        alignItems=\"center\"
+    <Animated.View
+      entering={FadeInUp.delay(index * 100)}
+      style={[countStyle]}
+    >
+      <LinearGradient
+        colors={[color, `${color}CC`, `${color}99`]}
+        start={[0, 0]}
+        end={[1, 1]}
+        borderRadius="$4"
+        padding="$4"
+        alignItems="center"
+        space="$2"
         minWidth={120}
-        borderWidth={1}
-        borderColor={theme.borderColor}
-        shadowColor={theme.shadowColor}
-        shadowOffset={{ width: 0, height: 2 }}
-        shadowOpacity={0.1}
-        shadowRadius={4}
-        elevation={2}
+        shadowColor="rgba(0,0,0,0.2)"
+        shadowOffset={{ width: 0, height: 4 }}
+        shadowOpacity={0.3}
+        shadowRadius={8}
+        elevation={8}
       >
-        <Text fontSize=\"$8\" marginBottom=\"$2\">
-          {icon}
-        </Text>
-        
-        <Text
-          fontSize=\"$8\"
-          fontWeight=\"bold\"
-          color={theme.primary}
-          textAlign=\"center\"
-          marginBottom=\"$1\"
+        {/* Glow Effect */}
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: 16,
+              backgroundColor: 'white',
+            },
+            glowStyle
+          ]}
+        />
+
+        {/* Icon */}
+        <View
+          backgroundColor="rgba(255,255,255,0.2)"
+          borderRadius="$6"
+          padding="$2"
+          alignItems="center"
+          justifyContent="center"
+          width={50}
+          height={50}
         >
-          {displayValue.toLocaleString()}
-          {value >= 1000 ? '+' : ''}
-        </Text>
-        
+          <Text fontSize="$6">{icon}</Text>
+        </View>
+
+        {/* Value */}
+        <AnimatedText
+          fontSize="$8"
+          fontWeight="900"
+          color="white"
+          textAlign="center"
+          textShadowColor="rgba(0,0,0,0.3)"
+          textShadowOffset={{ width: 1, height: 1 }}
+          textShadowRadius={2}
+        >
+          {formatNumber(value)}
+        </AnimatedText>
+
+        {/* Label */}
         <Text
-          fontSize=\"$3\"
-          color={theme.colorPress}
-          textAlign=\"center\"
+          fontSize="$3"
+          color="white"
+          textAlign="center"
+          opacity={0.9}
+          fontWeight="600"
           numberOfLines={2}
         >
           {label}
         </Text>
-      </Card>
+      </LinearGradient>
     </Animated.View>
   );
 };
 
 const StatsSection: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const { workoutCategories, videos } = useAppStore();
+  const { isRTL, theme } = useAppStore();
+  const { data: appStats, isLoading } = useAppStats();
 
-  // Calculate stats from actual data
-  const totalWorkouts = videos?.length || 154;
-  const totalCategories = workoutCategories?.length || 5;
-  const happyFamilies = 1000;
-  const minutesPerDay = 5;
+  // Animation values for section
+  const sectionAnimation = useSharedValue(0);
 
+  useEffect(() => {
+    sectionAnimation.value = withTiming(1, { duration: 1000 });
+  }, []);
+
+  // Animated styles
+  const sectionStyle = useAnimatedStyle(() => {
+    return {
+      opacity: sectionAnimation.value,
+      transform: [
+        {
+          translateY: interpolate(sectionAnimation.value, [0, 1], [50, 0])
+        }
+      ]
+    };
+  });
+
+  // Stats data
   const stats = [
     {
-      icon: '🎬',
-      value: totalWorkouts,
-      label: t('stats.workouts'),
+      value: appStats?.totalVideos || 300,
+      labelKey: 'stats.videos',
+      icon: '🎥',
+      color: '#ff6b35',
     },
     {
-      icon: '🏆',
-      value: totalCategories,
-      label: t('stats.categories'),
+      value: appStats?.activeKids || 50000,
+      labelKey: 'stats.kids',
+      icon: '👶',
+      color: '#e91e63',
     },
     {
+      value: appStats?.categories || 5,
+      labelKey: 'stats.categories',
+      icon: '🏃',
+      color: '#9c27b0',
+    },
+    {
+      value: appStats?.families || 10000,
+      labelKey: 'stats.families',
       icon: '👨‍👩‍👧‍👦',
-      value: happyFamilies,
-      label: t('stats.families'),
-    },
-    {
-      icon: '⏰',
-      value: minutesPerDay,
-      label: t('stats.minutes'),
+      color: '#4caf50',
     },
   ];
 
+  if (isLoading) {
+    return (
+      <AnimatedYStack
+        entering={FadeInUp.delay(400)}
+        padding="$4"
+        space="$4"
+        alignItems="center"
+      >
+        <Text fontSize="$6" color="$placeholderColor">
+          {t('common.loading')}...
+        </Text>
+      </AnimatedYStack>
+    );
+  }
+
   return (
-    <YStack padding=\"$4\" marginTop=\"$6\">
-      {/* Section Title */}
-      <Text
-        fontSize=\"$8\"
-        fontWeight=\"bold\"
-        color={theme.primary}
-        textAlign=\"center\"
-        marginBottom=\"$6\"
-        paddingHorizontal=\"$4\"
+    <Animated.View style={sectionStyle}>
+      <AnimatedYStack
+        entering={FadeInUp.delay(400)}
+        padding="$4"
+        space="$4"
+        backgroundColor={theme === 'light' ? '$backgroundHover' : '$background'}
       >
-        {t('sections.statistics')}
-      </Text>
-
-      {/* Stats Grid */}
-      <XStack
-        flexWrap=\"wrap\"
-        justifyContent=\"space-around\"
-        alignItems=\"center\"
-        space=\"$3\"
-      >
-        {stats.map((stat, index) => (
-          <StatItem
-            key={stat.label}
-            icon={stat.icon}
-            value={stat.value}
-            label={stat.label}
-            delay={index * 150}
-          />
-        ))}
-      </XStack>
-
-      {/* Additional Info */}
-      <YStack
-        marginTop=\"$6\"
-        backgroundColor={theme.backgroundHover}
-        borderRadius=\"$4\"
-        padding=\"$4\"
-        borderWidth={1}
-        borderColor={theme.borderColor}
-      >
-        <Text
-          fontSize=\"$5\"
-          fontWeight=\"bold\"
-          color={theme.primary}
-          textAlign=\"center\"
-          marginBottom=\"$3\"
+        {/* Section Title */}
+        <Text 
+          fontSize="$8" 
+          fontWeight="bold" 
+          textAlign="center"
+          color="$color"
+          marginBottom="$2"
         >
-          {t('hero.cta')}
+          {t('stats.title')}
         </Text>
-        
-        <Text
-          fontSize=\"$4\"
-          color={theme.color}
-          textAlign=\"center\"
-          lineHeight={22}
+
+        {/* Stats Grid */}
+        <XStack 
+          flexWrap="wrap" 
+          justifyContent="center" 
+          space="$3"
+          gap="$3"
         >
-          {t('hero.motto')} 💖
-        </Text>
-      </YStack>
-    </YStack>
+          {stats.map((stat, index) => (
+            <StatItem
+              key={stat.labelKey}
+              value={stat.value}
+              label={t(stat.labelKey)}
+              icon={stat.icon}
+              index={index}
+              color={stat.color}
+            />
+          ))}
+        </XStack>
+
+        {/* Additional Info */}
+        <YStack space="$2" alignItems="center" marginTop="$4">
+          <Text 
+            fontSize="$3" 
+            color="$placeholderColor"
+            textAlign="center"
+            opacity={0.8}
+          >
+            {t('app.description')}
+          </Text>
+          
+          {/* Animated Separator */}
+          <Animated.View
+            entering={FadeInUp.delay(800)}
+            style={{
+              width: 100,
+              height: 3,
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <LinearGradient
+              colors={['#ff6b35', '#e91e63', '#9c27b0']}
+              start={[0, 0]}
+              end={[1, 0]}
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          </Animated.View>
+        </YStack>
+      </AnimatedYStack>
+    </Animated.View>
   );
 };
 
