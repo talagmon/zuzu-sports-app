@@ -14,8 +14,8 @@ expo-env.d.ts
 .env
 .env.local
 .env.development
-.env.production
-.env.staging
+# Note: .env.production is excluded from this list for deployment documentation
+# but should still be handled carefully and not contain real secrets in repo
 
 # API Keys and Secrets
 config/secrets.js

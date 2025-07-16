@@ -1,264 +1,400 @@
 import React, { useEffect } from 'react';
 import { Dimensions } from 'react-native';
-import { YStack, XStack, Text, Button, useTheme } from '@tamagui/core';
+import { useTranslation } from 'react-i18next';
+import { 
+  YStack, 
+  XStack, 
+  Text, 
+  Button,
+  View
+} from '@tamagui/core';
+import { LinearGradient } from '@tamagui/linear-gradient';
 import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
+  FadeInDown, 
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
   withRepeat,
   withTiming,
-  interpolate
+  interpolate,
+  Easing
 } from 'react-native-reanimated';
-import { Canvas, Circle, LinearGradient, vec, Text as SkiaText, useFont } from '@shopify/react-native-skia';
-import { useTranslation } from 'react-i18next';
+import { Canvas, Circle, Group, Paint, Skia } from '@shopify/react-native-skia';
 
-// Import store
+// Import hooks and store
 import { useAppStore } from '../store/appStore';
+import { useFeaturedVideos } from '../services/cloudinaryApi';
+import VideoPlayer from './VideoPlayer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+// Animated components
+const AnimatedYStack = Animated.createAnimatedComponent(YStack);
+const AnimatedText = Animated.createAnimatedComponent(Text);
+
+// Particle component using Skia
+const ParticleSystem: React.FC = () => {
+  const particles = Array.from({ length: 15 }, (_, i) => ({
+    id: i,
+    x: Math.random() * screenWidth,
+    y: Math.random() * 300,
+    size: Math.random() * 8 + 4,
+    speed: Math.random() * 2 + 1,
+  }));
+
+  const animationValue = useSharedValue(0);
+
+  useEffect(() => {
+    animationValue.value = withRepeat(
+      withTiming(1, { 
+        duration: 4000, 
+        easing: Easing.inOut(Easing.ease) 
+      }),
+      -1,
+      false
+    );
+  }, []);
+
+  const paint = Skia.Paint();
+  paint.setAntiAlias(true);
+
+  return (
+    <Canvas style={{ position: 'absolute', width: screenWidth, height: 300 }}>
+      <Group>
+        {particles.map((particle) => {
+          const animatedX = interpolate(
+            animationValue.value,
+            [0, 1],
+            [particle.x, particle.x + 50]
+          );
+          const animatedY = interpolate(
+            animationValue.value,
+            [0, 1],
+            [particle.y, particle.y - 30]
+          );
+          const opacity = interpolate(
+            animationValue.value,
+            [0, 0.5, 1],
+            [0.3, 1, 0.3]
+          );
+
+          paint.setColor(Skia.Color(`rgba(255, 107, 53, ${opacity})`));
+
+          return (
+            <Circle
+              key={particle.id}
+              cx={animatedX}
+              cy={animatedY}
+              r={particle.size}
+              paint={paint}
+            />
+          );
+        })}
+      </Group>
+    </Canvas>
+  );
+};
+
 const HeroSection: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const { isRTL } = useAppStore();
+  const { currentLanguage, isRTL, theme } = useAppStore();
+  const { data: featuredVideos, isLoading } = useFeaturedVideos();
 
   // Animation values
-  const titleAnim = useSharedValue(0);
-  const subtitleAnim = useSharedValue(0);
-  const buttonAnim = useSharedValue(0);
-  const particleAnim = useSharedValue(0);
-  const gradientAnim = useSharedValue(0);
+  const titleAnimation = useSharedValue(0);
+  const subtitleAnimation = useSharedValue(0);
+  const buttonAnimation = useSharedValue(1);
 
-  // Initialize animations
   useEffect(() => {
-    // Staggered entrance animations
-    titleAnim.value = withSpring(1, { damping: 15, stiffness: 100 });
+    titleAnimation.value = withTiming(1, { duration: 1000 });
+    subtitleAnimation.value = withTiming(1, { duration: 1200, delay: 300 });
     
-    setTimeout(() => {
-      subtitleAnim.value = withSpring(1, { damping: 15, stiffness: 100 });
-    }, 300);
-    
-    setTimeout(() => {
-      buttonAnim.value = withSpring(1, { damping: 15, stiffness: 100 });
-    }, 600);
-
-    // Continuous animations
-    particleAnim.value = withRepeat(
-      withTiming(1, { duration: 3000 }),
-      -1,
-      true
-    );
-
-    gradientAnim.value = withRepeat(
-      withTiming(1, { duration: 4000 }),
+    buttonAnimation.value = withRepeat(
+      withTiming(1.05, { duration: 2000 }),
       -1,
       true
     );
   }, []);
 
   // Animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => {
+  const titleStyle = useAnimatedStyle(() => {
     return {
-      opacity: titleAnim.value,
+      opacity: titleAnimation.value,
       transform: [
-        { translateY: interpolate(titleAnim.value, [0, 1], [50, 0]) },
-        { scale: interpolate(titleAnim.value, [0, 1], [0.8, 1]) }
-      ],
+        {
+          translateY: interpolate(titleAnimation.value, [0, 1], [50, 0])
+        },
+        {
+          scale: interpolate(titleAnimation.value, [0, 1], [0.8, 1])
+        }
+      ]
     };
   });
 
-  const subtitleAnimatedStyle = useAnimatedStyle(() => {
+  const subtitleStyle = useAnimatedStyle(() => {
     return {
-      opacity: subtitleAnim.value,
+      opacity: subtitleAnimation.value,
       transform: [
-        { translateY: interpolate(subtitleAnim.value, [0, 1], [30, 0]) }
-      ],
+        {
+          translateY: interpolate(subtitleAnimation.value, [0, 1], [30, 0])
+        }
+      ]
     };
   });
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => {
+  const buttonStyle = useAnimatedStyle(() => {
     return {
-      opacity: buttonAnim.value,
       transform: [
-        { translateY: interpolate(buttonAnim.value, [0, 1], [20, 0]) },
-        { scale: interpolate(buttonAnim.value, [0, 1], [0.9, 1]) }
-      ],
+        {
+          scale: buttonAnimation.value
+        }
+      ]
     };
   });
 
-  // Skia animated particles
-  const SkiaBackground: React.FC = () => {
-    const animatedParticles = useAnimatedStyle(() => {
-      const progress = particleAnim.value;
-      return {
-        transform: [
-          { translateX: interpolate(progress, [0, 1], [0, 20]) },
-          { translateY: interpolate(progress, [0, 1], [0, -10]) }
-        ],
-      };
-    });
-
-    return (
-      <Canvas style={{ width: screenWidth, height: 300, position: 'absolute' }}>
-        {/* Animated gradient background */}
-        <LinearGradient
-          start={vec(0, 0)}
-          end={vec(screenWidth, 300)}
-          colors={['#ff6b6b', '#4ecdc4', '#feca57']}
-        />
-        
-        {/* Floating particles */}
-        {Array.from({ length: 15 }, (_, i) => (
-          <Circle
-            key={i}
-            cx={Math.random() * screenWidth}
-            cy={Math.random() * 300}
-            r={Math.random() * 8 + 2}
-            color={`rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`}
-          />
-        ))}
-      </Canvas>
-    );
-  };
+  // Get featured video for background
+  const backgroundVideo = featuredVideos?.[0];
 
   return (
-    <YStack
-      height={400}
-      position=\"relative\"
-      justifyContent=\"center\"
-      alignItems=\"center\"
-      overflow=\"hidden\"
-    >
-      {/* Skia Background */}
-      <SkiaBackground />
+    <View style={{ position: 'relative', height: 400 }}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={[
+          theme === 'light' ? '#ff6b35' : '#ff8a65',
+          theme === 'light' ? '#e91e63' : '#f06292',
+          theme === 'light' ? '#9c27b0' : '#ba68c8'
+        ]}
+        start={[0, 0]}
+        end={[1, 1]}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
 
-      {/* Content Overlay */}
-      <YStack
-        position=\"absolute\"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        justifyContent=\"center\"
-        alignItems=\"center\"
-        padding=\"$6\"
-        zIndex={1}
+      {/* Particle System */}
+      <ParticleSystem />
+
+      {/* Background Video (if available) */}
+      {backgroundVideo && (
+        <View 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.3,
+          }}
+        >
+          <VideoPlayer
+            video={backgroundVideo}
+            autoPlay
+            muted
+            loop
+            showControls={false}
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+        </View>
+      )}
+
+      {/* Content */}
+      <AnimatedYStack
+        entering={FadeInUp.delay(100)}
+        flex={1}
+        justifyContent="center"
+        alignItems="center"
+        padding="$6"
+        space="$4"
+        style={{ zIndex: 10 }}
       >
-        {/* App Logo/Title */}
-        <Animated.View style={titleAnimatedStyle}>
-          <YStack alignItems=\"center\" marginBottom=\"$4\">
-            <Text
-              fontSize=\"$12\"
-              fontWeight=\"900\"
-              color=\"white\"
-              textAlign=\"center\"
-              textShadowColor=\"rgba(0,0,0,0.3)\"
-              textShadowOffset={{ width: 2, height: 2 }}
-              textShadowRadius={4}
-            >
-              {t('hero.title')}
-            </Text>
-            <Text
-              fontSize=\"$6\"
-              color=\"white\"
-              textAlign=\"center\"
-              opacity={0.9}
-              marginTop=\"$2\"
-            >
-              {t('app.tagline')}
-            </Text>
-          </YStack>
-        </Animated.View>
-
-        {/* Subtitle */}
-        <Animated.View style={subtitleAnimatedStyle}>
+        {/* Main Title */}
+        <Animated.View style={titleStyle}>
           <Text
-            fontSize=\"$5\"
-            color=\"white\"
-            textAlign=\"center\"
-            marginBottom=\"$6\"
-            paddingHorizontal=\"$4\"
-            lineHeight={24}
-            textShadowColor=\"rgba(0,0,0,0.2)\"
-            textShadowOffset={{ width: 1, height: 1 }}
-            textShadowRadius={2}
+            fontSize="$10"
+            fontWeight="900"
+            color="white"
+            textAlign="center"
+            textShadowColor="rgba(0,0,0,0.3)"
+            textShadowOffset={{ width: 2, height: 2 }}
+            textShadowRadius={4}
+            fontFamily="$hebrew"
           >
-            {t('hero.subtitle')}
+            {t('app.title')}
           </Text>
         </Animated.View>
 
-        {/* CTA Buttons */}
-        <Animated.View style={buttonAnimatedStyle}>
-          <XStack space=\"$3\" flexWrap=\"wrap\" justifyContent=\"center\">
+        {/* Subtitle */}
+        <Animated.View style={subtitleStyle}>
+          <Text
+            fontSize="$6"
+            color="white"
+            textAlign="center"
+            opacity={0.95}
+            textShadowColor="rgba(0,0,0,0.2)"
+            textShadowOffset={{ width: 1, height: 1 }}
+            textShadowRadius={2}
+            fontFamily="$hebrew"
+          >
+            {t('app.subtitle')}
+          </Text>
+        </Animated.View>
+
+        {/* Description */}
+        <AnimatedText
+          entering={FadeInDown.delay(600)}
+          fontSize="$4"
+          color="white"
+          textAlign="center"
+          opacity={0.9}
+          maxWidth={300}
+          lineHeight="$2"
+          fontFamily="$hebrew"
+        >
+          {t('app.description')}
+        </AnimatedText>
+
+        {/* Call to Action Button */}
+        <Animated.View style={buttonStyle}>
+          <AnimatedYStack entering={FadeInUp.delay(800)} space="$3">
             <Button
-              backgroundColor=\"white\"
-              color={theme.primary}
-              fontSize=\"$5\"
-              fontWeight=\"bold\"
-              paddingHorizontal=\"$6\"
-              paddingVertical=\"$4\"
-              borderRadius=\"$6\"
-              pressStyle={{ scale: 0.95 }}
-              shadowColor=\"rgba(0,0,0,0.2)\"
+              size="$6"
+              backgroundColor="white"
+              color="$primary"
+              borderRadius="$6"
+              fontWeight="700"
+              fontSize="$5"
+              pressStyle={{ 
+                scale: 0.95,
+                backgroundColor: '$backgroundHover'
+              }}
+              shadowColor="rgba(0,0,0,0.3)"
               shadowOffset={{ width: 0, height: 4 }}
               shadowOpacity={0.3}
               shadowRadius={8}
-              elevation={5}
+              elevation={8}
             >
-              <XStack alignItems=\"center\" space=\"$2\">
-                <Text color={theme.primary} fontSize=\"$5\" fontWeight=\"bold\">
-                  {t('buttons.download')}
-                </Text>
-                <Text fontSize=\"$4\">🚀</Text>
-              </XStack>
+              {t('app.tagline')}
             </Button>
 
-            <Button
-              backgroundColor=\"rgba(255,255,255,0.2)\"
-              color=\"white\"
-              fontSize=\"$4\"
-              fontWeight=\"bold\"
-              paddingHorizontal=\"$5\"
-              paddingVertical=\"$4\"
-              borderRadius=\"$6\"
-              borderWidth={2}
-              borderColor=\"white\"
-              pressStyle={{ scale: 0.95, backgroundColor: 'rgba(255,255,255,0.3)' }}
-            >
-              <XStack alignItems=\"center\" space=\"$2\">
-                <Text color=\"white\" fontSize=\"$4\" fontWeight=\"bold\">
-                  {t('buttons.watchAll')}
-                </Text>
-                <Text fontSize=\"$4\">🎬</Text>
+            {/* Video Preview Thumbnails */}
+            {featuredVideos && featuredVideos.length > 1 && (
+              <XStack 
+                space="$2" 
+                justifyContent="center"
+                flexWrap="wrap"
+              >
+                {featuredVideos.slice(1, 4).map((video, index) => (
+                  <Animated.View
+                    key={video.public_id}
+                    entering={FadeInUp.delay(1000 + index * 100)}
+                  >
+                    <VideoPlayer
+                      video={video}
+                      showControls={false}
+                      style={{
+                        width: 80,
+                        height: 60,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: 'white',
+                      }}
+                    />
+                  </Animated.View>
+                ))}
               </XStack>
-            </Button>
-          </XStack>
+            )}
+          </AnimatedYStack>
         </Animated.View>
 
-        {/* Scroll Indicator */}
-        <YStack
-          position=\"absolute\"
-          bottom={20}
-          alignItems=\"center\"
-        >
+        {/* Floating Elements */}
+        <View style={{ position: 'absolute', top: 50, left: 30 }}>
           <Animated.View
-            style={{
-              transform: [
-                { 
-                  translateY: useAnimatedStyle(() => 
-                    interpolate(particleAnim.value, [0, 1], [0, 10])
-                  ).value 
-                }
-              ],
-            }}
+            style={[
+              {
+                transform: [
+                  {
+                    rotate: withRepeat(
+                      withTiming('360deg', { duration: 10000 }),
+                      -1,
+                      false
+                    )
+                  }
+                ]
+              }
+            ]}
           >
-            <Text color=\"white\" fontSize=\"$6\" opacity={0.8}>
-              ⬇️
-            </Text>
+            <Text fontSize="$8">🎮</Text>
           </Animated.View>
-        </YStack>
-      </YStack>
-    </YStack>
+        </View>
+
+        <View style={{ position: 'absolute', top: 80, right: 40 }}>
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  {
+                    rotate: withRepeat(
+                      withTiming('-360deg', { duration: 8000 }),
+                      -1,
+                      false
+                    )
+                  }
+                ]
+              }
+            ]}
+          >
+            <Text fontSize="$6">⭐</Text>
+          </Animated.View>
+        </View>
+
+        <View style={{ position: 'absolute', bottom: 60, left: 50 }}>
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  {
+                    translateY: withRepeat(
+                      withTiming(-20, { duration: 3000 }),
+                      -1,
+                      true
+                    )
+                  }
+                ]
+              }
+            ]}
+          >
+            <Text fontSize="$7">🏃‍♀️</Text>
+          </Animated.View>
+        </View>
+
+        <View style={{ position: 'absolute', bottom: 40, right: 60 }}>
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  {
+                    translateY: withRepeat(
+                      withTiming(-15, { duration: 2500 }),
+                      -1,
+                      true
+                    )
+                  }
+                ]
+              }
+            ]}
+          >
+            <Text fontSize="$5">💪</Text>
+          </Animated.View>
+        </View>
+      </AnimatedYStack>
+    </View>
   );
 };
 

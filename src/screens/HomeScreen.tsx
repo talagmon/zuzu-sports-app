@@ -1,367 +1,384 @@
 import React, { useEffect } from 'react';
-import { ScrollView, Dimensions } from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { 
   YStack, 
   XStack, 
   Text, 
   Button, 
-  Card, 
-  Image,
   Spinner,
-  useTheme
+  Theme,
+  View,
+  SafeAreaView
 } from '@tamagui/core';
+import { LinearGradient } from '@tamagui/linear-gradient';
 import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withRepeat, 
+  FadeInDown, 
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
   withTiming,
-  interpolate,
-  runOnJS
+  interpolate
 } from 'react-native-reanimated';
-import { useTranslation } from 'react-i18next';
-
-// Import services and store
-import { useWorkoutCategories, useCloudinaryVideos } from '../services/cloudinaryApi';
-import { useAppStore } from '../store/appStore';
 
 // Import components
-import VideoPlayer from '../components/VideoPlayer';
-import WorkoutCategoryCard from '../components/WorkoutCategoryCard';
 import HeroSection from '../components/HeroSection';
 import StatsSection from '../components/StatsSection';
+import WorkoutCategoryCard from '../components/WorkoutCategoryCard';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+// Import hooks and store
+import { useAppStore } from '../store/appStore';
+import { 
+  useWorkoutCategories, 
+  useFeaturedVideos, 
+  useAppStats 
+} from '../services/cloudinaryApi';
+import { getTextDirection } from '../localization/i18n';
+
+// Animated components
+const AnimatedYStack = Animated.createAnimatedComponent(YStack);
+const AnimatedXStack = Animated.createAnimatedComponent(XStack);
 
 const HomeScreen: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const { 
+    currentLanguage, 
     isRTL, 
-    selectedVideo, 
-    isVideoModalOpen, 
-    setVideoModalOpen,
+    theme,
     setWorkoutCategories,
     setFeaturedVideos,
+    setAppStats,
     setLoading,
-    setError
+    setError,
+    isLoading,
+    error
   } = useAppStore();
 
-  // Fetch data using TanStack Query
+  // Queries
   const { 
-    data: workoutCategories, 
+    data: categories, 
     isLoading: categoriesLoading, 
-    error: categoriesError 
+    error: categoriesError,
+    refetch: refetchCategories
   } = useWorkoutCategories();
   
   const { 
-    data: videos, 
+    data: featuredVideos, 
     isLoading: videosLoading, 
-    error: videosError 
-  } = useCloudinaryVideos();
+    error: videosError,
+    refetch: refetchVideos
+  } = useFeaturedVideos();
+  
+  const { 
+    data: appStats, 
+    isLoading: statsLoading, 
+    error: statsError,
+    refetch: refetchStats
+  } = useAppStats();
 
   // Animation values
-  const fadeAnim = useSharedValue(0);
-  const slideAnim = useSharedValue(50);
-  const scaleAnim = useSharedValue(0.8);
-  const rotateAnim = useSharedValue(0);
+  const floatingAnimation = useSharedValue(0);
+  const pulseAnimation = useSharedValue(1);
 
-  // Initialize animations
+  // Start animations
   useEffect(() => {
-    fadeAnim.value = withTiming(1, { duration: 1000 });
-    slideAnim.value = withSpring(0, { damping: 15, stiffness: 150 });
-    scaleAnim.value = withSpring(1, { damping: 12, stiffness: 100 });
-    
-    // Continuous rotation for loading elements
-    rotateAnim.value = withRepeat(
-      withTiming(360, { duration: 2000 }),
+    floatingAnimation.value = withRepeat(
+      withTiming(1, { duration: 3000 }),
       -1,
-      false
+      true
+    );
+    
+    pulseAnimation.value = withRepeat(
+      withTiming(1.1, { duration: 2000 }),
+      -1,
+      true
     );
   }, []);
 
   // Update store when data changes
   useEffect(() => {
-    if (workoutCategories) {
-      setWorkoutCategories(workoutCategories);
+    if (categories) {
+      setWorkoutCategories(categories);
     }
-  }, [workoutCategories, setWorkoutCategories]);
+  }, [categories, setWorkoutCategories]);
 
   useEffect(() => {
-    if (videos) {
-      setFeaturedVideos(videos.slice(0, 4)); // Set first 4 as featured
+    if (featuredVideos) {
+      setFeaturedVideos(featuredVideos);
     }
-  }, [videos, setFeaturedVideos]);
+  }, [featuredVideos, setFeaturedVideos]);
 
   useEffect(() => {
-    setLoading(categoriesLoading || videosLoading);
-  }, [categoriesLoading, videosLoading, setLoading]);
-
-  useEffect(() => {
-    if (categoriesError || videosError) {
-      setError(categoriesError?.message || videosError?.message || 'Unknown error');
-    } else {
-      setError(null);
+    if (appStats) {
+      setAppStats(appStats);
     }
-  }, [categoriesError, videosError, setError]);
+  }, [appStats, setAppStats]);
+
+  // Update loading state
+  useEffect(() => {
+    const loading = categoriesLoading || videosLoading || statsLoading;
+    setLoading(loading);
+  }, [categoriesLoading, videosLoading, statsLoading, setLoading]);
+
+  // Update error state
+  useEffect(() => {
+    const errorMessage = categoriesError?.message || videosError?.message || statsError?.message;
+    setError(errorMessage || null);
+  }, [categoriesError, videosError, statsError, setError]);
 
   // Animated styles
-  const containerAnimatedStyle = useAnimatedStyle(() => {
+  const floatingStyle = useAnimatedStyle(() => {
     return {
-      opacity: fadeAnim.value,
       transform: [
-        { translateY: slideAnim.value },
-        { scale: scaleAnim.value }
-      ],
+        {
+          translateY: interpolate(floatingAnimation.value, [0, 1], [0, -10])
+        }
+      ]
     };
   });
 
-  const loadingAnimatedStyle = useAnimatedStyle(() => {
+  const pulseStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { rotate: `${rotateAnim.value}deg` }
-      ],
+        {
+          scale: pulseAnimation.value
+        }
+      ]
     };
   });
 
-  if (categoriesLoading || videosLoading) {
+  // Refresh handler
+  const onRefresh = async () => {
+    await Promise.all([
+      refetchCategories(),
+      refetchVideos(),
+      refetchStats()
+    ]);
+  };
+
+  // Features data
+  const features = [
+    {
+      icon: '🎮',
+      titleKey: 'features.games.title',
+      descriptionKey: 'features.games.description',
+    },
+    {
+      icon: '👨‍👩‍👧‍👦',
+      titleKey: 'features.family.title',
+      descriptionKey: 'features.family.description',
+    },
+    {
+      icon: '🏃‍♀️',
+      titleKey: 'features.variety.title',
+      descriptionKey: 'features.variety.description',
+    },
+    {
+      icon: '🛡️',
+      titleKey: 'features.safety.title',
+      descriptionKey: 'features.safety.description',
+    },
+  ];
+
+  if (error) {
     return (
-      <YStack flex={1} justifyContent="center" alignItems="center" backgroundColor={theme.background}>
-        <Animated.View style={loadingAnimatedStyle}>
-          <Spinner size="large" color={theme.primary} />
-        </Animated.View>
-        <Text marginTop="$4" fontSize="$6" color={theme.color}>
-          {t('common.loading')}
-        </Text>
-      </YStack>
-    );
-  }
-
-  if (categoriesError || videosError) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center" backgroundColor={theme.background} padding="$4">
-        <Text fontSize="$6" color={theme.color} textAlign="center" marginBottom="$4">
-          {t('common.error')}
-        </Text>
-        <Text fontSize="$4" color={theme.colorPress} textAlign="center" marginBottom="$6">
-          {categoriesError?.message || videosError?.message}
-        </Text>
-        <Button 
-          onPress={() => window.location.reload()} 
-          backgroundColor={theme.primary}
-          color="white"
-        >
-          {t('common.retry')}
-        </Button>
-      </YStack>
-    );
-  }
-
-  return (
-    <Animated.View style={[{ flex: 1 }, containerAnimatedStyle]}>
-      <ScrollView 
-        style={{ flex: 1, backgroundColor: theme.background }}
-        contentContainerStyle={{ paddingBottom: 50 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Hero Section */}
-        <HeroSection />
-
-        {/* Featured Videos Section */}
-        <YStack padding="$4" marginTop="$6">
-          <Text 
-            fontSize="$8" 
-            fontWeight="bold" 
-            color={theme.primary}
-            textAlign={isRTL ? 'right' : 'left'}
-            marginBottom="$4"
-          >
-            {t('sections.featuredWorkouts')}
-          </Text>
-          
-          <XStack flexWrap="wrap" justifyContent="space-between">
-            {videos?.slice(0, 4).map((video, index) => (
-              <Card
-                key={video.public_id}
-                width="48%"
-                marginBottom="$3"
-                backgroundColor={theme.backgroundHover}
-                borderRadius="$4"
-                overflow="hidden"
-                pressStyle={{ scale: 0.95 }}
-                onPress={() => {
-                  useAppStore.getState().setSelectedVideo(video);
-                  useAppStore.getState().setVideoModalOpen(true);
-                }}
-              >
-                <VideoPlayer
-                  videoUrl={video.secure_url}
-                  width={screenWidth * 0.44}
-                  height={120}
-                  showControls={false}
-                />
-                <YStack padding="$2">
-                  <Text fontSize="$3" color={theme.color} numberOfLines={2}>
-                    {t('buttons.startWorkout')} {index + 1}
-                  </Text>
-                </YStack>
-              </Card>
-            ))}
-          </XStack>
-        </YStack>
-
-        {/* Workout Categories Section */}
-        <YStack padding="$4" marginTop="$4">
-          <Text 
-            fontSize="$8" 
-            fontWeight="bold" 
-            color={theme.primary}
-            textAlign={isRTL ? 'right' : 'left'}
-            marginBottom="$4"
-          >
-            {t('sections.workoutTypes')}
-          </Text>
-          
-          <YStack space="$3">
-            {workoutCategories?.map((category, index) => (
-              <WorkoutCategoryCard
-                key={category.name}
-                category={category}
-                index={index}
-              />
-            ))}
-          </YStack>
-        </YStack>
-
-        {/* Statistics Section */}
-        <StatsSection />
-
-        {/* Download CTA Section */}
-        <YStack 
-          padding="$6" 
-          marginTop="$6"
-          backgroundColor={theme.primary}
-          marginHorizontal="$4"
-          borderRadius="$6"
-        >
-          <Text 
-            fontSize="$9" 
-            fontWeight="bold" 
-            color="white"
-            textAlign="center"
-            marginBottom="$4"
-          >
-            {t('sections.downloadApp')}
-          </Text>
-          
-          <XStack space="$3" justifyContent="center" flexWrap="wrap">
-            <Button
-              backgroundColor={theme.secondary}
-              color="white"
-              fontSize="$5"
-              paddingHorizontal="$6"
-              paddingVertical="$3"
-              borderRadius="$4"
-              pressStyle={{ scale: 0.95 }}
-            >
-              {t('buttons.appStore')}
-            </Button>
-            
-            <Button
-              backgroundColor={theme.accent}
-              color="white"
-              fontSize="$5"
-              paddingHorizontal="$6"
-              paddingVertical="$3"
-              borderRadius="$4"
-              pressStyle={{ scale: 0.95 }}
-            >
-              {t('buttons.googlePlay')}
-            </Button>
-          </XStack>
-        </YStack>
-      </ScrollView>
-
-      {/* Video Modal */}
-      {isVideoModalOpen && selectedVideo && (
-        <VideoModal 
-          video={selectedVideo}
-          isVisible={isVideoModalOpen}
-          onClose={() => setVideoModalOpen(false)}
-        />
-      )}
-    </Animated.View>
-  );
-};
-
-// Video Modal Component
-const VideoModal: React.FC<{
-  video: any;
-  isVisible: boolean;
-  onClose: () => void;
-}> = ({ video, isVisible, onClose }) => {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  
-  const modalAnim = useSharedValue(0);
-  
-  useEffect(() => {
-    modalAnim.value = withSpring(isVisible ? 1 : 0);
-  }, [isVisible]);
-  
-  const modalAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: modalAnim.value,
-      transform: [
-        { scale: interpolate(modalAnim.value, [0, 1], [0.8, 1]) }
-      ],
-    };
-  });
-
-  if (!isVisible) return null;
-
-  return (
-    <YStack
-      position="absolute"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      backgroundColor="rgba(0,0,0,0.8)"
-      justifyContent="center"
-      alignItems="center"
-      zIndex={1000}
-    >
-      <Animated.View style={modalAnimatedStyle}>
-        <Card
-          width={screenWidth * 0.9}
-          backgroundColor={theme.background}
-          borderRadius="$6"
-          padding="$4"
-        >
-          <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
-            <Text fontSize="$6" fontWeight="bold" color={theme.color}>
-              {t('buttons.startWorkout')}
+      <SafeAreaView style={{ flex: 1 }}>
+        <Theme name={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
+          <YStack flex={1} justifyContent="center" alignItems="center" padding="$4">
+            <Text fontSize="$6" color="$error" textAlign="center" marginBottom="$4">
+              {t('common.error')}: {error}
             </Text>
-            <Button
-              size="$3"
-              circular
-              backgroundColor={theme.backgroundPress}
-              onPress={onClose}
-            >
-              <Text color={theme.color}>✕</Text>
+            <Button onPress={onRefresh} theme="active">
+              {t('common.retry')}
             </Button>
-          </XStack>
-          
-          <VideoPlayer
-            videoUrl={video.secure_url}
-            width={screenWidth * 0.82}
-            height={200}
-            showControls={true}
-          />
-        </Card>
-      </Animated.View>
-    </YStack>
+          </YStack>
+        </Theme>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1, direction: getTextDirection(currentLanguage) }}>
+      <Theme name={theme === 'light' ? 'zuzuLight' : 'zuzuDark'}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero Section */}
+          <HeroSection />
+
+          {/* Features Section */}
+          <AnimatedYStack
+            entering={FadeInUp.delay(200)}
+            padding="$4"
+            space="$4"
+          >
+            <Animated.View style={floatingStyle}>
+              <Text 
+                fontSize="$8" 
+                fontWeight="bold" 
+                textAlign="center"
+                color="$color"
+                marginBottom="$4"
+              >
+                {t('features.title')}
+              </Text>
+            </Animated.View>
+
+            <YStack space="$3">
+              {features.map((feature, index) => (
+                <AnimatedXStack
+                  key={feature.titleKey}
+                  entering={FadeInDown.delay(300 + index * 100)}
+                  padding="$4"
+                  backgroundColor="$background"
+                  borderRadius="$4"
+                  borderWidth={1}
+                  borderColor="$borderColor"
+                  space="$3"
+                  alignItems="center"
+                  flexDirection={isRTL ? 'row-reverse' : 'row'}
+                >
+                  <Animated.View style={pulseStyle}>
+                    <Text fontSize="$6">{feature.icon}</Text>
+                  </Animated.View>
+                  <YStack flex={1} space="$2">
+                    <Text 
+                      fontSize="$5" 
+                      fontWeight="600"
+                      color="$color"
+                      textAlign={isRTL ? 'right' : 'left'}
+                    >
+                      {t(feature.titleKey)}
+                    </Text>
+                    <Text 
+                      fontSize="$3" 
+                      color="$placeholderColor"
+                      textAlign={isRTL ? 'right' : 'left'}
+                    >
+                      {t(feature.descriptionKey)}
+                    </Text>
+                  </YStack>
+                </AnimatedXStack>
+              ))}
+            </YStack>
+          </AnimatedYStack>
+
+          {/* Stats Section */}
+          <StatsSection />
+
+          {/* Categories Section */}
+          <AnimatedYStack
+            entering={FadeInUp.delay(600)}
+            padding="$4"
+            space="$4"
+          >
+            <Text 
+              fontSize="$8" 
+              fontWeight="bold" 
+              textAlign="center"
+              color="$color"
+            >
+              {t('categories.title')}
+            </Text>
+
+            {isLoading ? (
+              <YStack alignItems="center" padding="$8">
+                <Spinner size="large" color="$primary" />
+                <Text marginTop="$2" color="$placeholderColor">
+                  {t('common.loading')}
+                </Text>
+              </YStack>
+            ) : (
+              <YStack space="$3">
+                {categories?.map((category, index) => (
+                  <WorkoutCategoryCard
+                    key={category.id}
+                    category={category}
+                    index={index}
+                  />
+                ))}
+              </YStack>
+            )}
+          </AnimatedYStack>
+
+          {/* Call to Action Section */}
+          <AnimatedYStack
+            entering={FadeInUp.delay(800)}
+            padding="$4"
+            space="$4"
+            marginBottom="$8"
+          >
+            <LinearGradient
+              colors={['$primary', '$secondary', '$accent']}
+              start={[0, 0]}
+              end={[1, 1]}
+              borderRadius="$6"
+              padding="$6"
+            >
+              <YStack space="$4" alignItems="center">
+                <Text 
+                  fontSize="$8" 
+                  fontWeight="bold" 
+                  color="white"
+                  textAlign="center"
+                >
+                  {t('cta.title')}
+                </Text>
+                <Text 
+                  fontSize="$4" 
+                  color="white"
+                  textAlign="center"
+                  opacity={0.9}
+                >
+                  {t('cta.description')}
+                </Text>
+                
+                <XStack space="$3" flexWrap="wrap" justifyContent="center">
+                  <Button
+                    size="$5"
+                    backgroundColor="white"
+                    color="$primary"
+                    borderRadius="$4"
+                    fontWeight="600"
+                    pressStyle={{ scale: 0.95 }}
+                    icon="📱"
+                  >
+                    {t('cta.appStore')}
+                  </Button>
+                  <Button
+                    size="$5"
+                    backgroundColor="white"
+                    color="$primary"
+                    borderRadius="$4"
+                    fontWeight="600"
+                    pressStyle={{ scale: 0.95 }}
+                    icon="📱"
+                  >
+                    {t('cta.googlePlay')}
+                  </Button>
+                </XStack>
+              </YStack>
+            </LinearGradient>
+          </AnimatedYStack>
+
+          {/* Footer */}
+          <YStack padding="$4" alignItems="center">
+            <Text 
+              fontSize="$2" 
+              color="$placeholderColor"
+              textAlign="center"
+            >
+              {t('footer.copyright')}
+            </Text>
+          </YStack>
+        </ScrollView>
+      </Theme>
+    </SafeAreaView>
   );
 };
 
